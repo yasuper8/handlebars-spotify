@@ -1,8 +1,8 @@
-// wait for DOM to load before running JS
-$(document).on('ready', function() {
+// wait for DOM to load before running JS that uses DOM elements
+$(document).ready(function() {
 
   // check to make sure JS is loaded
-  console.log('JS is loaded and DOM ready!');
+  console.log('JS is connected to HTML, and DOM is ready!');
 
   // form to search spotify API
   var $spotifySearch = $('#spotify-search');
@@ -16,8 +16,9 @@ $(document).on('ready', function() {
   // loading gif
   var $loading = $('#loading');
 
+
   // submit form to search spotify API
-  $spotifySearch.on('submit', function handleFormSubmit(event) {
+  $spotifySearch.on('submit', function(event) {
     event.preventDefault();
 
     // empty previous results
@@ -26,7 +27,7 @@ $(document).on('ready', function() {
     // save form data to variable
     var searchTrack = $track.val();
 
-    // only search if the form had a keyword to search with!
+    // only search if the form has a keyword to search with!
     if (searchTrack !== ""){
       // show loading gif
       $loading.show();
@@ -48,51 +49,38 @@ $(document).on('ready', function() {
 
     // reset the form
     $spotifySearch[0].reset();
+    // give focus back to track name field
     $track.focus();
   });
 
 
-  // handles data received from spotify
-  function handleSpotifyData(data) {
-    console.log("received data:", data);
+  // handles results received from spotify
+  function handleSpotifyData(spotifyResults) {
+    console.log("received results:", spotifyResults);
+
     // track results are in an array called `items`
     // which is nested in the `tracks` object
-    var trackResults = data.tracks.items;
-    console.log(trackResults);
+    var trackResults = spotifyResults.tracks.items;
+    console.log('search result tracks:', trackResults);
 
     // hide loading gif
     $loading.hide();
 
-    // only append results if there are any
-    if (trackResults.length > 0) {
+    // show results on page:
+    // iterate through results
+    trackResults.forEach(function (result, index) {
+      // use results to construct HTML we want to show
+      //**** GAAAAAH! THERE HAS TO BE A BETTER WAY! ****//
+      var trackHtml = '<div class="row"><div class="col-xs-4">' +
+        '<img src="' + result.album.images[0].url + '" class="img-responsive"></div>' +
+        '<div class="col-xs-8"><p><strong>' + result.name + '</strong> by ' +
+        result.artists[0].name + '</p><p><a href="' + result.preview_url +
+        '" target="_blank" class="btn btn-sm btn-default">Preview ' +
+        '<span class="glyphicon glyphicon-play"></span></a></p></div></div><hr>';
 
-      // iterate through results
-      trackResults.forEach(function (result, index) {
-
-        // build object of data we want in our view
-        var trackData = {
-          albumArt: result.album.images.length > 0 ? result.album.images[0].url : null,
-          artist: result.artists[0].name,
-          name: result.name,
-          previewUrl: result.preview_url
-        };
-
-        // use data to construct HTML we want to show
-        var $trackHtml = '<div class="row"><div class="col-xs-4">' +
-          '<img src="' + trackData.albumArt + '" class="img-responsive"></div>' +
-          '<div class="col-xs-8"><p><strong>' + trackData.name + '</strong> by ' +
-          trackData.artist + '</p><p><a href="' + trackData.previewUrl +
-          '" target="_blank" class="btn btn-sm btn-default">Preview ' +
-          '<span class="glyphicon glyphicon-play"></span></a></p></div></div><hr>';
-
-        // append HTML to the view
-        $results.append($trackHtml);
-      });
-
-    // else let user know there are no results
-    } else {
-      $results.append('<p class="text-center">No results</p>');
-    }
+      // append HTML to the view
+      $('#results').append(trackHtml);
+    });
   }
 
 });

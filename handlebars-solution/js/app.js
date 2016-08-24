@@ -1,8 +1,8 @@
 // wait for DOM to load before running JS
-$(document).on('ready', function() {
+$(document).ready(function() {
 
   // check to make sure JS is loaded
-  console.log('JS is loaded!');
+  console.log('JS is connected to HTML, and DOM is ready!');
 
   // form to search spotify API
   var $spotifySearch = $('#spotify-search');
@@ -21,7 +21,7 @@ $(document).on('ready', function() {
   var template = Handlebars.compile(source);
 
   // submit form to search spotify API
-  $spotifySearch.on('submit', function handleFormSubmit(event) {
+  $spotifySearch.on('submit', function(event) {
     event.preventDefault();
 
     // empty previous results
@@ -34,30 +34,36 @@ $(document).on('ready', function() {
     if (searchTrack !== ""){
       // show loading gif
       $loading.show();
+
       // spotify search URL
       var searchUrl = 'https://api.spotify.com/v1/search?type=track&q=' + searchTrack;
 
       // use AJAX to call spotify API
       $.ajax({
-        url: searchUrl,
         method: 'GET',
+        url: searchUrl,
         success: renderSpotifyData  // use this function as the callback
       });
     } else {
+      // remind the user to enter a keyword
+      // one way is a "quick and ugly" alert
       alert("Please enter a keyword to search");
     }
 
     // reset the form
     $spotifySearch[0].reset();
+    // give focus back to track name field
     $track.focus();
   });
 
+  // handles results received from spotify
+  function renderSpotifyData(spotifyResults) {
+    console.log("received results:", spotifyResults);
 
-  function renderSpotifyData(data) {
     // track results are in an array called `items`
     // which is nested in the `tracks` object
-    var trackResults = data.tracks.items;
-    console.log(trackResults);
+    var trackResults = spotifyResults.tracks.items;
+    console.log('search result tracks:', trackResults);
 
     // hide loading gif
     $loading.hide();
